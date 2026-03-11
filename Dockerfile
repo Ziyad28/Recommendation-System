@@ -1,11 +1,9 @@
-FROM maven:3.9.6-eclipse-temurin-17
+FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
-COPY . .
-
-RUN mvn clean package -DskipTests
+COPY target/*.jar app.jar
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "java -jar target/*.jar --server.port=$PORT"]
+CMD ["sh", "-c", "java -jar app.jar --server.port=$PORT"]
