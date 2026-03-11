@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Smart Recommendation</title>
+
+    <style>
+
+        body{
+        background:#0f0f0f;
+        font-family:Arial,sans-serif;
+        color:white;
+        display:flex;
+        justify-content:center;
+        margin:0;
+        }
+
+        .container{
+        width:420px;
+        margin-top:40px;
+        margin-bottom:40px;
+        }
+
+        select,input,button{
+        width:100%;
+        padding:12px;
+        margin-top:8px;
+        border-radius:8px;
+        border:none;
+        font-size:15px;
+        }
+
+        button{
+        background:#f7a600;
+        cursor:pointer;
+        font-weight:bold;
+        }
+
+        .card{
+        background:#1c1c1c;
+        padding:15px;
+        margin-top:15px;
+        border-radius:10px;
+        }
+
+        .mapBtn{
+        background:#f7a600;
+        border:none;
+        padding:10px;
+        margin-top:10px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:bold;
+        }
+
+        .star{font-size:22px}
+
+        .full{color:#FFD700}
+
+        .empty{color:#555}
+
+        .half{
+        background:linear-gradient(90deg,#FFD700 50%,#555 50%);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        }
+
+        .badge1{
+        color:#FFD700;
+        font-weight:bold;
+        }
+
+        .badge2{
+        color:#C0C0C0;
+        font-weight:bold;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Smart Recommendation System</h2>
+
+    <label>Age</label>
+    <input id="age" type="number" value="21">
+
+    <label>Budget</label>
+    <input id="budget" type="number" value="200">
+
+    <label>City</label>
+    <select id="city"></select>
+
+    <label>Type</label>
+    <select id="type" onchange="updateCategoryOptions()"></select>
+
+    <label>Category</label>
+    <select id="category"></select>
+
+    <button onclick="recommend()">Recommend</button>
+
+    <div id="result"></div>
+
+</div>
+
+<script>
+
+    const cities=[
+    "Riyadh",
+    "Jeddah",
+    "Dammam",
+    "Abha",
+    "Tabuk",
+    "Hail"
+    ];
+
+
+    const restaurantCategories=[
+
+    "italian restaurant",
+    "american restaurant",
+    "japanese restaurant",
+    "mexican restaurant",
+    "saudi restaurant",
+    "arabic restaurant"
+
+    ];
+
+
+    const coffeeCategories=[
+
+    "specialty coffee",
+    "roastery coffee"
+
+    ];
+
+
+    function getStars(rating){
+
+    let stars="";
+
+    const full=Math.floor(rating);
+    const half=(rating-full)>=0.5;
+    const empty=5-full-(half?1:0);
+
+    for(let i=0;i<full;i++)
+    stars+='<span class="star full">★</span>';
+
+    if(half)
+    stars+='<span class="star half">★</span>';
+
+    for(let i=0;i<empty;i++)
+    stars+='<span class="star empty">★</span>';
+
+    return stars;
+
+    }
+
+
+
+    function fillCities(){
+
+    const citySelect=document.getElementById("city");
+
+    cities.forEach(city=>{
+
+    const option=document.createElement("option");
+
+    option.value=city;
+    option.textContent=city;
+
+    citySelect.appendChild(option);
+
+    });
+
+    }
+
+
+
+    function fillTypes(){
+
+    const typeSelect=document.getElementById("type");
+
+    ["restaurant","coffee"].forEach(t=>{
+
+    const option=document.createElement("option");
+
+    option.value=t;
+    option.textContent=t;
+
+    typeSelect.appendChild(option);
+
+    });
+
+    }
+
+
+
+    function updateCategoryOptions(){
+
+    const type=document.getElementById("type").value;
+
+    const category=document.getElementById("category");
+
+    category.innerHTML="";
+
+    const list=type==="restaurant"?restaurantCategories:coffeeCategories;
+
+    list.forEach(item=>{
+
+    const option=document.createElement("option");
+
+    option.value=item;
+    option.textContent=item;
+
+    category.appendChild(option);
+
+    });
+
+    }
+
+
+
+    function recommend(){
+
+    const data={
+
+    age:parseInt(document.getElementById("age").value||0),
+
+    budget:parseInt(document.getElementById("budget").value||0),
+
+    city:document.getElementById("city").value,
+
+    type:document.getElementById("type").value,
+
+    category:document.getElementById("category").value,
+
+    language:"en"
+
+    };
+
+
+    fetch("/recommend",{
+
+    method:"POST",
+
+    headers:{"Content-Type":"application/json"},
+
+    body:JSON.stringify(data)
+
+    })
+
+    .then(res=>res.json())
+    .then(showResults)
+
+    .catch(()=>{
+
+    document.getElementById("result").innerHTML="<div class='card'>Error loading data</div>";
+
+    });
+
+    }
+
+
+
+    function showResults(data){
+
+    const container=document.getElementById("result");
+
+    container.innerHTML="";
+
+    const places=data.places||[];
+
+    places.forEach((p,index)=>{
+
+    const name=p.name;
+    const rating=p.rating;
+    const reviews=p.reviews;
+
+    const stars=getStars(rating);
+
+    const mapLink="https://www.google.com/maps/search/"+encodeURIComponent(name);
+
+    let badge="";
+
+    if(index===0){
+    badge="<p class='badge1'>🏆 Top Recommendation</p>";
+    }
+
+    if(index===1){
+    badge="<p class='badge2'>🥈 Second Best Choice</p>";
+    }
+
+    container.innerHTML+=`
+
+    <div class="card">
+
+    ${badge}
+
+    <h3>${name}</h3>
+
+    <p style="font-size:20px">${stars} (${rating} • ${reviews} reviews)</p>
+
+    <a href="${mapLink}" target="_blank">
+
+    <button class="mapBtn">Open in Google Maps</button>
+
+    </a>
+
+    </div>
+
+    `;
+
+    });
+
+    }
+
+
+
+    fillCities();
+
+    fillTypes();
+
+    updateCategoryOptions();
+
+</script>
+
+</body>
+
+</html>
