@@ -10,7 +10,7 @@ https://github.com/Ziyad28/Recommendation-System
 
 ## 📸 Preview
 
-![App Preview](src/main/resources/static/cafe-background.jpg)
+![App Preview](preview.png)
 
 Modern glass-style UI with a smart recommendation engine for restaurants and coffee shops.
 
