@@ -134,5 +134,5 @@ This project is designed to be:
 
 ## 👨‍💻 Developer
 
-**Ziyad Alghadban**
+**Ziyad Alghadhban**
 Software Engineering Student – University of Hail
